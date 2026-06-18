@@ -1,82 +1,257 @@
 <!DOCTYPE html>
-    <html> 
-        <head>
-            <link rel="preconnect" href="https://googleapis.com">
-            <link rel="preconnect" href="https://gstatic.com" crossorigin>
-            <link href="https://googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
-            <meta charset="UTF-8">
-            <title> SMG Interactive </title>
-            <style>
-                body {
-                    margin: 0;
-                    background-color: white;
-                    font-family: 'Times New Roman', Times, serif;
-                    color: grey;
+<html>
 
-                    justify-content: center;
+<head>
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title> Storytelling for Migrant Justice </title>
+    <style>
+        body {
+            margin: 0;
+            background-color: white;
+            font-family: 'Times New Roman', Times, serif;
+            color: grey;
 
-                    min-height: 100vh;
-                }
-                
-                #title {
-                    color: grey;
-                    font-size: 3rem;
-                    font-family: "Great Vibes", cursive;
+            justify-content: center;
 
-                    letter-spacing: 0.5px;
-                    text-align: center;
-                    margin-top: 100px;
-                    margin-bottom: 30px;
-                }
+            min-height: 100vh;
+        }
 
-                .text-content {
-                    max-width: 600px;
-                    margin: 0 auto;
-                    line-height: 1.6;
-                    text-align: center;
-                }
+        #title {
+            color: grey;
+            font-size: 3rem;
+            font-family: "Great Vibes", cursive;
 
-                .interactive {
-                    display: flex;
-                }
+            letter-spacing: 0.5px;
+            text-align: center;
+            margin-top: 100px;
+            margin-bottom: 30px;
+        }
 
-                .tile {
-                    position: absolute;
+        .text-content {
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+            text-align: center;
+        }
 
-                    width: 100px;
-                    height: 100px;
+        .interactive {
+            display: flex;
+            width: 600px;
+            height: 800px;
+            overflow: visible;
+            position: relative;
+            align-items: center;
+        }
 
-                    overflow: visible;
+        .tile {
+            position: absolute;
 
-                    transition:
-                        transform 0.25s ease,
-                        box-shadow 0.25s ease;
-   
-                    z-index: 1;
-                }
+            width: 100px;
+            height: 100px;
 
-                .tile img {
-                    width: 100%;
-                    height: 100%;
-                }
-            </style>
-        </head>
-    <body>
-        <h1 id="title"> Storytelling for Migrant Justice </h1>
+            overflow: visible;
 
-        <div class="content-block">
-            <p>
-                Over 200 people are currently detained in the Northwest Ice Processing Center.
-            </p>
-            <p>
-                These are some of their stories. 
-            </p>
-        </div>
+            transition:
+                transform 0.25s ease,
+                box-shadow 0.25s ease;
 
-        <div id="interactive"></div>
-    </body>
-    <script>
-        
-    </script>
-    </html>
+            z-index: 1;
+        }
+
+        .tile img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .tile.neighbor {
+            transform: scale(1.1);
+            z-index: 5;
+        }
+
+        .tile.active {
+            transform: scale(1.3);
+            z-index: 10;
+        }
+
+        .hotspot {
+            width: 20px;
+            height: 20px;
+            background: orchid;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 999;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 id="title"> Storytelling for Migrant Justice </h1>
+
+    <div class="text-content">
+        <p>
+            Over 200 people are currently detained in the Northwest Ice Processing Center.
+        </p>
+        <p>
+            These are some of their stories.
+        </p>
+    </div>
+
+    <div id="interactive-demo-1" class="interactive">
+        <img src="Images/fullvase.jpg" style="width: 100vh">
+    </div>
+
+    <div class="text-content">
+        <h2> Option 2 </h2>
+    </div>
+    <div id="interactive-demo-2" class="interactive"></div>
+</body>
+<script>
+    // Parse data from Google sheet
+    fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vSQMSrLp74c85PbT2uxvtXMU9rBPzU44IKQSHBtdscJr8edA9EKYJpVDHKU3udguaIUW7XZqC-LE4mF/pub?output=csv")
+        .then(response => response.text())
+        .then(csv => {
+            console.log(csv);
+
+            const rows = csv.trim().split("\n");
+            const headers = rows[0].split(",");
+
+            const data = rows.slice(1).map(row => {
+                const vals = row.split(",");
+                const object = {};
+
+                headers.forEach((header, index) => {
+                    object[header] = vals[index].trim();
+                });
+
+                return object;
+            });
+
+            data.forEach(story => {
+                createHotspots(story);
+            });
+        });
+
+    function createHotspots(story) {
+        const hotspot = document.createElement("a");
+        const container = document.getElementById("interactive-demo-1");
+
+        hotspot.className = "hotspot";
+        hotspot.href = story.page;
+
+        hotspot.style.left = story.xPercent + "%";
+        hotspot.style.top = story.yPercent + "%";
+
+        container.appendChild(hotspot);
+    }
+
+
+
+    // Boilerplate position data for story tiles
+    const tiles = [
+        { id: 0, x: 255, y: 20 },
+
+        { id: 1, x: 205, y: 120 },
+        { id: 2, x: 305, y: 120 },
+
+        { id: 3, x: 155, y: 220 },
+        { id: 4, x: 255, y: 220 },
+        { id: 5, x: 355, y: 220 },
+
+        { id: 6, x: 105, y: 320 },
+        { id: 7, x: 205, y: 320 },
+        { id: 8, x: 305, y: 320 },
+        { id: 9, x: 405, y: 320 },
+
+        { id: 10, x: 105, y: 420 },
+        { id: 11, x: 205, y: 420 },
+        { id: 12, x: 305, y: 420 },
+        { id: 13, x: 405, y: 420 },
+
+        { id: 14, x: 155, y: 520 },
+        { id: 15, x: 255, y: 520 },
+        { id: 16, x: 355, y: 520 },
+
+        { id: 17, x: 205, y: 620 },
+        { id: 18, x: 305, y: 620 },
+    ];
+
+    // Graph for sample tiles => neighbors
+    const neighbors = {
+        0: [1, 2],
+
+        1: [0, 2, 3, 4],
+        2: [0, 1, 4, 5],
+
+        3: [1, 4, 6, 7],
+        4: [1, 2, 3, 5, 7, 8],
+        5: [2, 4, 8, 9],
+
+        6: [3, 7, 10],
+        7: [3, 4, 6, 8, 10, 11],
+        8: [4, 5, 7, 9, 12, 13],
+        9: [5, 8, 13],
+
+        10: [6, 7, 11, 14],
+        11: [7, 10, 12, 15],
+        12: [8, 11, 13, 15],
+        13: [8, 9, 12, 16],
+
+        14: [10, 15, 17],
+        15: [11, 12, 14, 16, 17, 18],
+        16: [13, 15, 18],
+
+        17: [14, 15, 18],
+        18: [15, 16, 17]
+    };
+
+    const vase = document.getElementById("interactive-demo-2");
+
+    const tileElements = {};
+    const offset = 395;
+
+    for (const tile of tiles) {
+        const link = document.createElement("a");
+
+        link.className = "tile";
+
+        link.href = `page${tile.id}.html`;
+
+        link.style.left = (tile.x + offset) + 'px';
+        link.style.top = tile.y + 'px';
+
+        const img = document.createElement("img");
+
+        img.src = `https://picsum.photos/seed/${tile.id}/200`;
+
+        link.appendChild(img);
+
+        vase.appendChild(link);
+
+        tileElements[tile.id] = link;
+
+        link.addEventListener("mouseenter", () => {
+            clearEffects();
+
+            link.classList.add("active");
+
+            for (const n of neighbors[tile.id] || []) {
+                tileElements[n].classList.add("neighbor");
+            }
+        });
+    }
+
+    vase.addEventListener("mouseleave", clearEffects);
+
+    function clearEffects() {
+        Object.values(tileElements).forEach(tile => {
+            tile.classList.remove("active");
+            tile.classList.remove("neighbor");
+        });
+    }
+</script>
+
+</html>
 </DOCTYPE>
